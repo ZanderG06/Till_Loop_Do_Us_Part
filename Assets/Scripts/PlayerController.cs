@@ -3,20 +3,21 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    private ServiceHub serviceHub;
-
     public float moveSpeed;
     private Vector2 moveInput;
     private Rigidbody2D rb;
-
-    private bool moveEnabled = true;
-
+    public bool moveEnabled = true;
     private bool isPaused = false;
 
-    private void Awake()
+    private Interactable_Dialogue targetInteractable;
+    [SerializeField] private GameObject debugCurrentInteractable;
+
+    private UIManager uiManager;
+
+    private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        serviceHub = ServiceHub.Instance;
+        uiManager = ServiceHub.Instance.UIManager;
     }
 
     public void OnMove(InputAction.CallbackContext context)
@@ -41,10 +42,41 @@ public class PlayerController : MonoBehaviour
         if (context.started)
         {
             isPaused = !isPaused;
-            serviceHub.UIManager.TogglePause();
+            uiManager.TogglePause();
 
             if (isPaused) Time.timeScale = 0f;
             else Time.timeScale = 1f;
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if(collision.TryGetComponent(out Interactable_Dialogue foundInteractable))
+        {
+            targetInteractable = foundInteractable;
+            debugCurrentInteractable = collision.gameObject;
+
+            uiManager.ShowPrompt();
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.TryGetComponent(out Interactable_Dialogue foundInteractable))
+        {
+            targetInteractable = null;
+            debugCurrentInteractable = null;
+
+            uiManager.HidePrompt();
+        }
+    }
+
+    public void OnInteract(InputAction.CallbackContext context)
+    {
+        if(context.performed && targetInteractable != null)
+        {
+            uiManager.HidePrompt();
+            targetInteractable.Interact();
         }
     }
 }
