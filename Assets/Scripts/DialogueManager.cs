@@ -13,6 +13,7 @@ public class DialogueManager : MonoBehaviour
     private void Start()
     {
         uiManager = ServiceHub.Instance.UIManager;
+        playerController = ServiceHub.Instance.PlayerController;
 
         dialogueQueue = new Queue<string>();
     }
@@ -21,7 +22,7 @@ public class DialogueManager : MonoBehaviour
     {
         uiManager.ShowDialoguePanel();
         inDialogue = true;
-        playerController = ServiceHub.Instance.PlayerController;
+        playerController.moveEnabled = false;
 
         foreach (string currentString in sentences) dialogueQueue.Enqueue(currentString);
 
